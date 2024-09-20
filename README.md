@@ -8,7 +8,7 @@ First commit from local!
 - [x] Remove the pop-up for game over
 - [ ] Add background music
 - [ ] Make the game faster each time the snake eats an apple
-- [ ] Replace snake head with an icon
+- [x] Replace snake head with an icon
 - [ ] Pause the game with the space bar
 - [ ] Add a scoreboard
 - [ ] Add a title screen

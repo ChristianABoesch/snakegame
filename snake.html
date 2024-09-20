@@ -25,6 +25,8 @@
         const ctx = canvas.getContext('2d');
         const box = 20;
         let snake, direction, food, game, gameOver;
+        const snakeHeadImage = new Image();
+        snakeHeadImage.src = 'media/snakehead.jpeg'; // Load the snake head image
 
         function initGame() {
             snake = [{ x: 9 * box, y: 9 * box }];
@@ -55,11 +57,16 @@
 
         function draw() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
+            // Draw the snake
             for (let i = 0; i < snake.length; i++) {
-                ctx.fillStyle = (i === 0) ? 'green' : 'white';
-                ctx.fillRect(snake[i].x, snake[i].y, box, box);
-                ctx.strokeStyle = 'black';
-                ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+                if (i === 0) {
+                    ctx.drawImage(snakeHeadImage, snake[i].x, snake[i].y, box, box); // Draw the snake head image
+                } else {
+                    ctx.fillStyle = 'white';
+                    ctx.fillRect(snake[i].x, snake[i].y, box, box);
+                    ctx.strokeStyle = 'black';
+                    ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+                }
             }
 
             ctx.fillStyle = 'red';
