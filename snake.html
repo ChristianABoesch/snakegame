@@ -27,6 +27,10 @@
         let snake, direction, food, game, gameOver;
         const snakeHeadImage = new Image();
         snakeHeadImage.src = 'media/snakehead.jpeg'; // Load the snake head image
+        const eatSound = new Audio('media/apple.wav'); // Load the apple eating sound
+        const backgroundMusic = new Audio('media/snakegame_musicloop_draft1.wav'); // {{ edit_1 }}: Load the background music
+
+        let isPaused = false; // {{ edit_1 }}: Add a variable to track the pause state
 
         function initGame() {
             snake = [{ x: 9 * box, y: 9 * box }];
@@ -35,6 +39,8 @@
             gameOver = false;
             document.getElementById('restartButton').style.display = 'none';
             game = setInterval(draw, 150);
+            backgroundMusic.loop = true; // {{ edit_2 }}: Set the music to loop
+            backgroundMusic.play(); // {{ edit_3 }}: Start playing the background music
         }
 
         document.addEventListener('keydown', directionControl);
@@ -44,6 +50,15 @@
             else if (event.keyCode == 38 && direction != 'DOWN') direction = 'UP';
             else if (event.keyCode == 39 && direction != 'LEFT') direction = 'RIGHT';
             else if (event.keyCode == 40 && direction != 'UP') direction = 'DOWN';
+            if (event.keyCode == 32) { // {{ edit_2 }}: Check for space bar key
+                if (isPaused) {
+                    isPaused = false; // Resume the game
+                    game = setInterval(draw, Math.max(50, 150 - (snake.length * 5))); // Restart the game loop
+                } else {
+                    isPaused = true; // Pause the game
+                    clearInterval(game); // Stop the game loop
+                }
+            }
         }
 
         function collision(head, array) {
@@ -56,6 +71,8 @@
         }
 
         function draw() {
+            if (isPaused) return; // {{ edit_3 }}: Skip drawing if the game is paused
+
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             // Draw the snake
             for (let i = 0; i < snake.length; i++) {
@@ -81,7 +98,12 @@
             if (direction === 'DOWN') snakeY += box;
 
             if (snakeX === food.x && snakeY === food.y) {
+                eatSound.play(); // Play the eating sound
                 food = { x: Math.floor(Math.random() * 20) * box, y: Math.floor(Math.random() * 20) * box };
+                
+                // {{ edit_1 }}: Decrease the interval to make the game faster
+                clearInterval(game);
+                game = setInterval(draw, Math.max(50, 150 - (snake.length * 5))); // Adjust speed based on snake length
             } else {
                 snake.pop();
             }
@@ -91,6 +113,7 @@
             if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake)) {
                 clearInterval(game);
                 gameOver = true; // Set game over state
+                backgroundMusic.pause(); // {{ edit_1 }}: Stop the background music
                 document.getElementById('restartButton').style.display = 'block'; // Show restart button
             }
 
