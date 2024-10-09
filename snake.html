@@ -18,8 +18,18 @@
         <p>Eat the red food to grow.</p>
         <p>Don't run into the walls or yourself!</p>
         <button id="restartButton" onclick="restartGame()">Restart Game</button>
+        <button id="settingsButton" onclick="openSettings()">Settings</button> <!-- {{ edit_1 }}: Add Settings button -->
+        <button id="howToPlayButton" onclick="openHowToPlay()">How To Play</button> <!-- {{ edit_2 }}: Add How To Play button -->
     </div>
     <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <div>
+        <label for="musicVolume">Music Volume:</label>
+        <input type="range" id="musicVolume" min="0" max="1" step="0.1" value="1" onchange="setMusicVolume(this.value)"> <!-- {{ edit_3 }}: Music volume slider -->
+    </div>
+    <div>
+        <label for="soundVolume">Sound Volume:</label>
+        <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="1" onchange="setSoundVolume(this.value)"> <!-- {{ edit_4 }}: Sound volume slider -->
+    </div>
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -98,6 +108,7 @@
             if (direction === 'DOWN') snakeY += box;
 
             if (snakeX === food.x && snakeY === food.y) {
+                eatSound.currentTime = 0; // {{ edit_1 }}: Restart the eating sound
                 eatSound.play(); // Play the eating sound
                 food = { x: Math.floor(Math.random() * 20) * box, y: Math.floor(Math.random() * 20) * box };
                 
@@ -130,6 +141,22 @@
         }
 
         initGame(); // Initialize the game on load
+
+        function openSettings() { // {{ edit_3 }}: Function to redirect to settings.html
+            window.location.href = 'settings.html';
+        }
+
+        function openHowToPlay() { // {{ edit_4 }}: Function to redirect to howto.html
+            window.location.href = 'howto.html';
+        }
+
+        function setMusicVolume(value) { // {{ edit_5 }}: Function to set music volume
+            backgroundMusic.volume = value; // Set the volume of the background music
+        }
+
+        function setSoundVolume(value) { // {{ edit_6 }}: Function to set sound volume
+            eatSound.volume = value; // Set the volume of the eating sound
+        }
     </script>
 </body>
 </html>
