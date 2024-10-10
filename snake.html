@@ -5,31 +5,55 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Snake Game</title>
     <style>
-        body { display: flex; }
-        #instructions { margin-right: 20px; }
-        canvas { background: #eee; }
-        #restartButton { display: none; margin-top: 20px; }
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-end; /* Align items to the bottom */
+            height: 100vh; /* Full height of the viewport */
+            margin: 0; /* Remove default margin */
+        }
+        #gameContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* Center items horizontally */
+            margin-bottom: 20px; /* Space from the bottom */
+        }
+        #scoreboard {
+            margin: 10px 0; /* Space above and below the scoreboard */
+        }
+        canvas {
+            background: #eee; /* Canvas background color */
+        }
+        #instructions {
+            margin-bottom: 10px; /* Space below instructions */
+            text-align: center; /* Center the text */
+        }
     </style>
 </head>
 <body>
-    <div id="instructions">
-        <h2>Instructions</h2>
-        <p>Use the arrow keys to control the snake.</p>
-        <p>Eat the red food to grow.</p>
-        <p>Don't run into the walls or yourself!</p>
+    <div id="gameContainer">
+        <div id="instructions">
+            <h2>Game Instructions</h2>
+            <p>Use the arrow keys to move the snake.</p>
+            <p>Eat the red apples to grow your snake.</p>
+            <p>Don't run into the walls or yourself!</p>
+            <p>Press the space bar to pause and resume the game.</p>
+        </div>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+        <div id="scoreboard">Apples Eaten: <span id="appleCount">0</span></div> <!-- Scoreboard for apples eaten -->
+        <div id="highScore">High Score: <span id="highScoreValue">0</span></div> <!-- High score display -->
         <button id="restartButton" onclick="restartGame()">Restart Game</button>
-        <button id="settingsButton" onclick="openSettings()">Settings</button> <!-- {{ edit_1 }}: Add Settings button -->
-        <button id="howToPlayButton" onclick="openHowToPlay()">How To Play</button> <!-- {{ edit_2 }}: Add How To Play button -->
+        <div>
+            <label for="musicVolume">Music Volume:</label>
+            <input type="range" id="musicVolume" min="0" max="1" step="0.1" value="1" onchange="setMusicVolume(this.value)"> <!-- Music volume slider -->
+        </div>
+        <div>
+            <label for="soundVolume">Sound Volume:</label>
+            <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="1" onchange="setSoundVolume(this.value)"> <!-- Sound volume slider -->
+        </div>
     </div>
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <div>
-        <label for="musicVolume">Music Volume:</label>
-        <input type="range" id="musicVolume" min="0" max="1" step="0.1" value="1" onchange="setMusicVolume(this.value)"> <!-- {{ edit_3 }}: Music volume slider -->
-    </div>
-    <div>
-        <label for="soundVolume">Sound Volume:</label>
-        <input type="range" id="soundVolume" min="0" max="1" step="0.1" value="1" onchange="setSoundVolume(this.value)"> <!-- {{ edit_4 }}: Sound volume slider -->
-    </div>
+
     <script>
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
@@ -38,9 +62,16 @@
         const snakeHeadImage = new Image();
         snakeHeadImage.src = 'media/snakehead.jpeg'; // Load the snake head image
         const eatSound = new Audio('media/apple.wav'); // Load the apple eating sound
-        const backgroundMusic = new Audio('media/snakegame_musicloop_draft1.wav'); // {{ edit_1 }}: Load the background music
+        const deathSound = new Audio('media/death.wav'); // Load the death sound
+        const backgroundMusic = new Audio('media/snakegame_musicloop_draft1.wav'); // Load the background music
 
-        let isPaused = false; // {{ edit_1 }}: Add a variable to track the pause state
+        let isPaused = false; // Add a variable to track the pause state
+        let countdown = 3; // Initialize countdown variable
+        let countdownInterval; // Variable to hold the countdown interval
+        let appleCount = 0; // Initialize apple count
+        let highScore = localStorage.getItem('highScore') ? parseInt(localStorage.getItem('highScore')) : 0; // Retrieve high score from localStorage
+
+        document.getElementById('highScoreValue').innerText = highScore; // Display the high score
 
         function initGame() {
             snake = [{ x: 9 * box, y: 9 * box }];
@@ -49,39 +80,34 @@
             gameOver = false;
             document.getElementById('restartButton').style.display = 'none';
             game = setInterval(draw, 150);
-            backgroundMusic.loop = true; // {{ edit_2 }}: Set the music to loop
-            backgroundMusic.play(); // {{ edit_3 }}: Start playing the background music
+            backgroundMusic.loop = true; // Set the music to loop
+            backgroundMusic.play(); // Start playing the background music
         }
 
-        document.addEventListener('keydown', directionControl);
-
-        function directionControl(event) {
-            if (event.keyCode == 37 && direction != 'RIGHT') direction = 'LEFT';
-            else if (event.keyCode == 38 && direction != 'DOWN') direction = 'UP';
-            else if (event.keyCode == 39 && direction != 'LEFT') direction = 'RIGHT';
-            else if (event.keyCode == 40 && direction != 'UP') direction = 'DOWN';
-            if (event.keyCode == 32) { // {{ edit_2 }}: Check for space bar key
-                if (isPaused) {
-                    isPaused = false; // Resume the game
-                    game = setInterval(draw, Math.max(50, 150 - (snake.length * 5))); // Restart the game loop
+        function startCountdown() { // Function to start the countdown
+            countdownInterval = setInterval(() => {
+                if (countdown > 0) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear the canvas
+                    ctx.font = "48px Arial"; // Set font size and style
+                    ctx.fillStyle = "black"; // Set text color
+                    ctx.fillText(countdown, canvas.width / 2, canvas.height / 2); // Draw countdown number
+                    countdown--; // Decrease countdown
                 } else {
-                    isPaused = true; // Pause the game
-                    clearInterval(game); // Stop the game loop
+                    clearInterval(countdownInterval); // Stop the countdown
+                    initGame(); // Start the game after countdown
                 }
-            }
+            }, 1000); // Update every second
         }
 
-        function collision(head, array) {
-            for (let i = 0; i < array.length; i++) {
-                if (head.x === array[i].x && head.y === array[i].y) {
-                    return true;
-                }
-            }
-            return false;
+        function restartGame() {
+            countdown = 3; // Reset countdown variable
+            appleCount = 0; // Reset apple count
+            document.getElementById('appleCount').innerText = appleCount; // Update scoreboard to reflect reset
+            startCountdown(); // Start the countdown before restarting the game
         }
 
         function draw() {
-            if (isPaused) return; // {{ edit_3 }}: Skip drawing if the game is paused
+            if (isPaused) return; // Skip drawing if the game is paused
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             // Draw the snake
@@ -108,11 +134,19 @@
             if (direction === 'DOWN') snakeY += box;
 
             if (snakeX === food.x && snakeY === food.y) {
-                eatSound.currentTime = 0; // {{ edit_1 }}: Restart the eating sound
+                eatSound.currentTime = 0; // Restart the eating sound
                 eatSound.play(); // Play the eating sound
                 food = { x: Math.floor(Math.random() * 20) * box, y: Math.floor(Math.random() * 20) * box };
-                
-                // {{ edit_1 }}: Decrease the interval to make the game faster
+                appleCount++; // Increment apple count
+                document.getElementById('appleCount').innerText = appleCount; // Update scoreboard
+
+                // Update high score if necessary
+                if (appleCount > highScore) {
+                    highScore = appleCount; // Update high score
+                    localStorage.setItem('highScore', highScore); // Save high score to localStorage
+                    document.getElementById('highScoreValue').innerText = highScore; // Update displayed high score
+                }
+
                 clearInterval(game);
                 game = setInterval(draw, Math.max(50, 150 - (snake.length * 5))); // Adjust speed based on snake length
             } else {
@@ -122,9 +156,10 @@
             let newHead = { x: snakeX, y: snakeY };
 
             if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake)) {
+                deathSound.play(); // Play death sound
                 clearInterval(game);
                 gameOver = true; // Set game over state
-                backgroundMusic.pause(); // {{ edit_1 }}: Stop the background music
+                backgroundMusic.pause(); // Stop the background music
                 document.getElementById('restartButton').style.display = 'block'; // Show restart button
             }
 
@@ -136,27 +171,42 @@
             }
         }
 
-        function restartGame() {
-            initGame();
+        function collision(head, array) {
+            for (let i = 0; i < array.length; i++) {
+                if (head.x === array[i].x && head.y === array[i].y) {
+                    return true;
+                }
+            }
+            return false;
         }
 
-        initGame(); // Initialize the game on load
-
-        function openSettings() { // {{ edit_3 }}: Function to redirect to settings.html
-            window.location.href = 'settings.html';
-        }
-
-        function openHowToPlay() { // {{ edit_4 }}: Function to redirect to howto.html
-            window.location.href = 'howto.html';
-        }
-
-        function setMusicVolume(value) { // {{ edit_5 }}: Function to set music volume
+        function setMusicVolume(value) { // Function to set music volume
             backgroundMusic.volume = value; // Set the volume of the background music
         }
 
-        function setSoundVolume(value) { // {{ edit_6 }}: Function to set sound volume
+        function setSoundVolume(value) { // Function to set sound volume
             eatSound.volume = value; // Set the volume of the eating sound
         }
+
+        document.addEventListener('keydown', directionControl);
+
+        function directionControl(event) {
+            if (event.keyCode == 37 && direction != 'RIGHT') direction = 'LEFT';
+            else if (event.keyCode == 38 && direction != 'DOWN') direction = 'UP';
+            else if (event.keyCode == 39 && direction != 'LEFT') direction = 'RIGHT';
+            else if (event.keyCode == 40 && direction != 'UP') direction = 'DOWN';
+            if (event.keyCode == 32) { // Check for space bar key
+                if (isPaused) {
+                    isPaused = false; // Resume the game
+                    game = setInterval(draw, Math.max(50, 150 - (snake.length * 5))); // Restart the game loop
+                } else {
+                    isPaused = true; // Pause the game
+                    clearInterval(game); // Stop the game loop
+                }
+            }
+        }
+
+        startCountdown(); // Start the countdown before the game
     </script>
 </body>
 </html>

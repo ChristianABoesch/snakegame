@@ -10,13 +10,13 @@ Seventh commit from local!
 - [x] Make the game faster each time the snake eats an apple
 - [x] Replace snake head with an icon
 - [x] Pause the game with the space bar
-- [ ] Add a scoreboard
+- [x] Add a scoreboard
 - [x] Add a title screen
 - [x] Add a settings menu
 - [ ] Add a credits screen
 - [x] Add a how to play screen
-- [ ] Add a high score screen
+- [x] Add a high score screen
 - [x] Add a sound effect for when the snake eats an apple
-- [ ] Add a sound effect for when the snake dies
+- [x] Add a sound effect for when the snake dies
 - [ ] Make wall look more like a wall (or change wording)
-- [ ] Add a countdown every time the page is refreshed
+- [x] Add a countdown every time the page is refreshed
